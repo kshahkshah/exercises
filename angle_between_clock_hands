@@ -1,0 +1,43 @@
+#! /usr/bin/env ruby
+
+# given a time return the angle between analog clock hands at that time
+
+puts "What time of day is it? (e.g 4:56)"
+
+STDOUT.flush
+
+raw_time_of_day = gets.chomp
+
+begin
+  raw_hours, minutes = *raw_time_of_day.match(/(\d{1,2}):(\d{2})/)[1..2].map(&:to_i)
+
+  # and that's all the validation i'll do, should be fine, amiright........
+  raise ArgumentError unless raw_hours && minutes
+
+  # naive solution first?
+
+  # get the angle relative to noon, which I'll place at 0 degrees
+
+  # first, here is what a single minute represents in degrees
+  each_minute = 360.0 / 60.0
+
+  # and hours
+  each_hour   = 360.0 / 12.0
+
+  # and fractional hours
+  each_minute_hour = 1.0 / 60.0
+
+  # normalize hours
+  hours = raw_hours == 12 ? 0 : raw_hours
+
+  # get angles
+  minutes_angle = each_minute * minutes
+  hours_angle   = (hours * each_hour) + (each_minute_hour * minutes)
+
+  # now return an angle
+  puts "The angle is #{(hours_angle - minutes_angle).abs % 180} degrees"
+
+rescue ArgumentError => e
+  puts "Couldn't parse that time #{raw_time_of_day}"
+  exit 1
+end
