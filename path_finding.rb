@@ -39,6 +39,11 @@ class Graph
     @nodes.map(&:heuristic)
 
     @nodes.each do |node|
+      # MAGIC
+      if node.portal_node?
+        node.edges << Edge.new(self.goal_node, 0)
+      end
+
       # up
       up = @nodes.select{ |n| (n.x == node.x) && (n.y == node.y+1) }.first
       node.edges << Edge.new(up, 10) if up
@@ -77,41 +82,47 @@ class Graph
 
   def solve!
 
-    self.start_node.cost = 0
+    self.start_node.cost = self.start_node.heuristic
+
     @open = [self.start_node]
 
     while(current_node = @open.sort!{|a,b| a.cost <=> b.cost }.shift) do
 
-      puts "examining #{current_node.x}, #{current_node.y}"
-
       current_node.edges.each do |edge|
-
-        puts "looking at edge going to #{edge.to.x}, #{edge.to.y} (cost : #{edge.movement}, heuristic: #{edge.to.heuristic}, class: #{edge.to.class})"
 
         # don't do anything
         if edge.to.visited? || edge.to.obstacle_node?
 
-        elsif edge.to.goal_node?
-          edge.to.parent = current_node
-          puts "Goal Node Reach, path through: #{current_node.x}, #{current_node.y}"
-
         else
           total_cost = edge.to.heuristic + edge.movement + (current_node.cost)
 
-          if @open.index(edge.to)
-            # reassign
-            if edge.to.cost > total_cost
+          if edge.to.goal_node?
+            edge.to.parent = current_node
+            puts "Goal Node reached, path exists through: #{current_node.x}, #{current_node.y}"
+
+            parent = edge.to
+            while(parent = parent.parent) do
+              puts "#{parent.class}: #{parent.x}, #{parent.y} #{parent.heuristic} #{parent.cost}"
+            end
+            puts "Total Cost (movement and heuristic): #{total_cost}\n\n"
+
+          else
+
+            if @open.index(edge.to)
+              # reassign
+              if edge.to.cost > total_cost
+                edge.to.cost = total_cost
+                edge.to.parent = current_node
+              end
+
+            else
+              # add to the open list, set an initial value from here, set a current parent
+              @open << edge.to
               edge.to.cost = total_cost
               edge.to.parent = current_node
             end
 
-          else
-            # add to the open list, set an initial value from here, set a current parent
-            @open << edge.to
-            edge.to.cost = total_cost
-            edge.to.parent = current_node
           end
-
         end
       end
 
@@ -142,6 +153,10 @@ class Node
   end
 
   def obstacle_node?
+    false
+  end
+
+  def portal_node?
     false
   end
 
@@ -180,6 +195,12 @@ class ObstacleNode < Node
     nil
   end
 end
+class PortalNode < Node
+  def portal_node?
+    true
+  end
+end
+
 
 class Edge
   attr_accessor :to, :movement
@@ -213,7 +234,7 @@ graph.add_node Node.new(7,0)
 graph.add_node ObstacleNode.new(0,1)
 graph.add_node Node.new(1,1)
 graph.add_node Node.new(2,1)
-graph.add_node Node.new(3,1)
+graph.add_node PortalNode.new(3,1)
 graph.add_node ObstacleNode.new(4,1)
 graph.add_node Node.new(5,1)
 graph.add_node Node.new(6,1)
@@ -282,8 +303,9 @@ graph.add_node ObstacleNode.new(7,7)
 graph.complete!
 graph.solve!
 
-parent = graph.goal_node
 
-while(parent = parent.parent) do
-  puts "#{parent.class}: #{parent.x}, #{parent.y}"
-end
+# parent = graph.goal_node
+
+# while(parent = parent.parent) do
+#   puts "#{parent.class}: #{parent.x}, #{parent.y}"
+# end
