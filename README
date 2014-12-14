@@ -1,1 +1,31 @@
 One constraint / goal is to not use anything but standard libraries, no external dependencies. It doesn't matter if things are redundant. You can use any language you want as well.  Everything is just an executable
+
+
+Things to know:
+
+* sorts - run time characteristics and when to use
+  * insertion sort
+  * quick sort
+  * merge sort
+  * heap sort
+  * radix sort
+
+* big-o
+
+* traveling salesman
+
+* knapsack problem
+
+* A*
+
+* Djikstra
+
+* NP-completeness
+
+* tree traversal/manipulation
+
+* hash tables
+
+* stacks, arrays, linked lists, priority queues
+
+* 
