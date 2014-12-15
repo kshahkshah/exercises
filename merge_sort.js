@@ -88,4 +88,10 @@ function mergeSort(array) {
   return merged_array;
 }
 
-console.log(mergeSort(process.argv[2].split(',').map(function(i){return Number(i)})));
+var rawInput = '';
+
+process.stdin.resume();
+process.stdin.on('data', function(chunk) { rawInput += chunk.toString() })
+process.stdin.on('end', function() {
+  console.log(mergeSort(rawInput.split(',').map(function(i){return Number(i)})));
+});
