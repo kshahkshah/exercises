@@ -88,10 +88,18 @@ function mergeSort(array) {
   return merged_array;
 }
 
+// read buffer
 var rawInput = '';
-
 process.stdin.resume();
-process.stdin.on('data', function(chunk) { rawInput += chunk.toString() })
+process.stdin.on('data', function(chunk) { 
+  rawInput += chunk.toString() 
+
+});
+
+// nothing else to read, fire
 process.stdin.on('end', function() {
-  console.log(mergeSort(rawInput.split(',').map(function(i){return Number(i)})));
+  // split and cast to Numbers
+  var input = rawInput.split(',').map(function(i){ return Number(i) });
+  process.stdout.write(mergeSort(input) + '\n');
+
 });
