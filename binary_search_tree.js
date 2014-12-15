@@ -50,24 +50,17 @@ var BinarySearchTree = function() {
   }
 
   this.contains = function(value) {
-    var found = false;
-    var currentNode = this.root;
+    var found = false,
+        currentNode = this.root;
 
-    while(!found) {
+    while(!found && currentNode) {
       if (currentNode.value > value) {
-        if(currentNode.left) {
-          currentNode = currentNode.left;
-        } else {
-          break
-        }
+        currentNode = currentNode.left;
       }
       else if (currentNode.value < value) {
-        if(currentNode.right) {
-          currentNode = currentNode.right;
-        } else {
-          break
-        }
-      } else {
+        currentNode = currentNode.right;
+      }
+      else {
         found = true;        
       }
     }
