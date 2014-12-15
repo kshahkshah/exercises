@@ -70,6 +70,67 @@ var BinarySearchTree = function() {
 
   this.remove = function(value) {
 
+    var found = false,
+        currentParent = null,
+        currentDirection = null;
+        currentNode = this.root;
+
+    // same setup, except keep track of a parent and direction as well.
+    while(!found && currentNode) {
+      if (currentNode.value > value) {
+        currentParent = currentNode;
+        currentDirection = 'left';
+        currentNode = currentNode.left;
+      }
+      else if (currentNode.value < value) {
+        currentParent = currentNode;
+        currentDirection = 'right';
+        currentNode = currentNode.right;
+      }
+      else {
+        found = true;        
+      }
+    }
+
+    if (found) {
+      // algorithm for removal requires disconnecting and reconnecting nodes
+
+      // no children
+      if (!currentNode.left && !currentNode.right) {
+        // just delete the child, we know which side it was 
+        // on because we kept track of direction
+        currentParent[currentDirection] = null
+        return true;
+
+      // has children
+      //            12
+      //         10    15
+      //        4   6
+      // killing 10 means:
+      //            12
+      //         6     15
+      //       4
+      //
+      } else {
+
+        // two children
+        if (currentNode.left && currentNode.right) {
+          // this is clearly more complicated
+
+          // TODO want food
+
+        // one child
+        } else {
+          // don't see why this wouldn't work just fine...
+          currentParent[currentDirection] = (currentNode.left||currentNode.right);
+          return true;
+
+        }
+      }
+
+    } else {
+      return false;
+    }
   }
 }
 
