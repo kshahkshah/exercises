@@ -11,8 +11,8 @@ function Node(label, x, y) {
   this.parent = null;
   this.heuristic = 0;
   this.cost = 0;
-  this._x = x;
-  this._y = y;
+  this.x = x;
+  this.y = y;
   this.visited = false;
 
   this.startNode = function() {
@@ -27,7 +27,6 @@ function Node(label, x, y) {
   this.wallNode = function() {
     return (this.label == 'wall')
   }
-
 }
 
 // edges, a join which original from and point to a destination nodes
@@ -41,6 +40,7 @@ function Graph() {
   this.complete = false;
   this.startNode = null;
   this.goalNode = null;
+  this.solved = false;
   this.nodes = [];
 
   this.addNode = function(node) {
@@ -89,23 +89,117 @@ function Graph() {
       right = this.nodes.filter(function(p) { return ((p.x == node.x + 1) && (p.y == node.y )) })[0];
 
       // left right cost 10
-      if (up)    { nodes.edge << new Edge(up, 10) }
-      if (down)  { nodes.edge << new Edge(down, 10) }
-      if (left)  { nodes.edge << new Edge(left, 10) }
-      if (right) { nodes.edge << new Edge(right, 10) }
+      if (up)    { node.edges.push(new Edge(up, 10)) }
+      if (down)  { node.edges.push(new Edge(down, 10)) }
+      if (left)  { node.edges.push(new Edge(left, 10)) }
+      if (right) { node.edges.push(new Edge(right, 10)) }
 
       // diagonals cost sqrt(2) * 10
-      if (upl)   { nodes.edge << new Edge(upl, 10 * Math.sqrt(2)) }
-      if (upr)   { nodes.edge << new Edge(upr, 10 * Math.sqrt(2)) }
-      if (downl) { nodes.edge << new Edge(downl, 10 * Math.sqrt(2)) }
-      if (downr) { nodes.edge << new Edge(downr, 10 * Math.sqrt(2)) }
+      if (upl)   { node.edges.push(new Edge(upl, 10 * Math.sqrt(2))) }
+      if (upr)   { node.edges.push(new Edge(upr, 10 * Math.sqrt(2))) }
+      if (downl) { node.edges.push(new Edge(downl, 10 * Math.sqrt(2))) }
+      if (downr) { node.edges.push(new Edge(downr, 10 * Math.sqrt(2))) }
+
+      // magic portals!
+      if (node.portalNode()) {
+        node.edges.push(new Edge(this.goalNode, 0))
+      }
+
     }
 
     this.complete = true;
   }
 
   this.solve = function() {
+
+    // the algorithm gets us to the goal node, and tries to do so efficiently
     // 
+    // we get to the goal node, purely through the re-parenting procedure
+    // which lets us trace our steps backward
+    // 
+    // to get us to pick our next moves intelligently, we consider two items:
+    //    1. the movement costs, which are ~14.1 for diagonals and 10 points for ordinals
+    //    2. the heuristic, the as-the-crow flies distance to the goal, which we cached
+    // 
+    // we arrive at the final cost by for each node by summing the previous movement costs
+    // up to and including this point and the heuristic
+    // 
+    // the previous movement costs are the parents movement costs
+    // in this simple case all of the movements are pretty standard, we're on a grid
+    // but it's obvious in real life applications where money and time are factored into cost
+    // or in a game where there could be a terrain cost (sand vs asphalt) it might
+    // have been smarter to go around rather than through something
+    // 
+    // we account for that through re-parenting, every time a new node is explored we're
+    // looking to see if other nodes we intend to visit would benefit from having stepped
+    // first through this node. If this is the case, we re-parent and re-calculate that node's cost
+    // 
+
+    // LETS DO IT
+
+    // first, the cost of the start node is just the heuristic
+    this.startNode.cost = this.startNode.heuristic;
+
+    // we have to keep track of what we've visited, and are considering visiting
+    // we store the visited state on the node itself, so we can just ask the object
+    // 
+    // we start, of course, with the startNode
+    var visiting = [this.startNode];
+    var currentNode, relevantEdges, indexOfNode, totalCost;
+
+    while(!this.solved) {
+      // next, not relevant for the startNode
+      // we'd like to examine these in order of lowest cost to greatest
+      currentNode = visiting.sort(function(a,b) { return a.cost > b.cost }).shift();
+
+      if (typeof currentNode == 'undefined') {
+        throw 'ran out of nodes to check before we found a solution'
+      }
+
+      // exclude visited nodes and obstacles like walls
+      relevantEdges = currentNode.edges.filter(function(e) { return !(e.destination.wallNode() || e.destination.visited) })
+
+      // iterate over the edges
+      for(var i=0, currentEdge; currentEdge = relevantEdges[i]; i++) {
+
+        // so this is the meat and potatoes
+
+        // first, is this in the visiting list?
+        // remember JS quirk.. indexOf returns -1 if not in list
+        indexOfNode = visiting.indexOf(currentEdge.destination);
+        totalCost = currentNode.cost + currentEdge.destination.heuristic + currentEdge.cost;
+
+        // it is not
+        if (indexOfNode == -1) {
+
+          // set the cost
+          currentEdge.destination.parent = currentNode;
+          currentEdge.destination.cost = totalCost;
+
+          visiting.push(currentEdge.destination);
+
+        // it is
+        } else {
+
+          if (currentEdge.destination.cost > totalCost) {
+            // re-set the cost and parent
+            currentEdge.destination.parent = currentNode;
+            currentEdge.destination.cost = totalCost;
+          }
+
+        }
+
+        if (currentEdge.destination.goalNode()) {
+          this.solved = true
+        }
+
+      }
+
+      // and now we've visited this node
+      currentNode.visited = true;
+
+    }
+
   }
 
 }
@@ -192,4 +286,10 @@ graph.initialize()
 // use it
 graph.solve()
 
+console.log('solution found:')
+
+var solutionParent;
+while (solutionParent = (solutionParent ? solutionParent.parent : graph.goalNode)) {
+  console.log("coordinates are: (" + solutionParent.x + ", " + solutionParent.y + ")")
+}
 
