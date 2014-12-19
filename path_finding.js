@@ -14,18 +14,20 @@ function Node(label, x, y) {
   this.x = x;
   this.y = y;
   this.visited = false;
+}
 
-  this.startNode = function() {
-    return (this.label == 'start')
-  }
-  this.goalNode = function() {
-    return (this.label == 'goal')
-  }
-  this.portalNode = function() {
-    return (this.label == 'portal')
-  }
-  this.wallNode = function() {
-    return (this.label == 'wall')
+Node.prototype = {
+  startNode: function() {
+    return (this.label === 'start')
+  },
+  goalNode: function() {
+    return (this.label === 'goal')
+  },
+  portalNode: function() {
+    return (this.label === 'portal')
+  },
+  wallNode: function() {
+    return (this.label === 'wall')
   }
 }
 
@@ -79,14 +81,14 @@ function Graph() {
       // add edges, in this case it is all the potential moves
 
       // this is obviously a naive and inefficient way to do this
-      up    = this.nodes.filter(function(p) { return ((p.x == node.x ) && (p.y == node.y + 1 )) })[0];
-      upl   = this.nodes.filter(function(p) { return ((p.x == node.x - 1) && (p.y == node.y + 1 )) })[0];
-      upr   = this.nodes.filter(function(p) { return ((p.x == node.x + 1) && (p.y == node.y + 1)) })[0];
-      down  = this.nodes.filter(function(p) { return ((p.x == node.x) && (p.y == node.y - 1)) })[0];
-      downl = this.nodes.filter(function(p) { return ((p.x == node.x - 1) && (p.y == node.y - 1)) })[0];
-      downr = this.nodes.filter(function(p) { return ((p.x == node.x + 1) && (p.y == node.y - 1)) })[0];
-      left  = this.nodes.filter(function(p) { return ((p.x == node.x - 1) && (p.y == node.y )) })[0];
-      right = this.nodes.filter(function(p) { return ((p.x == node.x + 1) && (p.y == node.y )) })[0];
+      up    = this.nodes.filter(function(p) { return ((p.x === node.x ) && (p.y === node.y + 1 )) })[0];
+      upl   = this.nodes.filter(function(p) { return ((p.x === node.x - 1) && (p.y === node.y + 1 )) })[0];
+      upr   = this.nodes.filter(function(p) { return ((p.x === node.x + 1) && (p.y === node.y + 1)) })[0];
+      down  = this.nodes.filter(function(p) { return ((p.x === node.x) && (p.y === node.y - 1)) })[0];
+      downl = this.nodes.filter(function(p) { return ((p.x === node.x - 1) && (p.y === node.y - 1)) })[0];
+      downr = this.nodes.filter(function(p) { return ((p.x === node.x + 1) && (p.y === node.y - 1)) })[0];
+      left  = this.nodes.filter(function(p) { return ((p.x === node.x - 1) && (p.y === node.y )) })[0];
+      right = this.nodes.filter(function(p) { return ((p.x === node.x + 1) && (p.y === node.y )) })[0];
 
       // left right cost 10
       if (up)    { node.edges.push(new Edge(up, 10)) }
@@ -113,27 +115,27 @@ function Graph() {
   this.solve = function() {
 
     // the algorithm gets us to the goal node, and tries to do so efficiently
-    // 
+    //
     // we get to the goal node, purely through the re-parenting procedure
     // which lets us trace our steps backward
-    // 
+    //
     // to get us to pick our next moves intelligently, we consider two items:
     //    1. the movement costs, which are ~14.1 for diagonals and 10 points for ordinals
     //    2. the heuristic, the as-the-crow flies distance to the goal, which we cached
-    // 
+    //
     // we arrive at the final cost by for each node by summing the previous movement costs
     // up to and including this point and the heuristic
-    // 
+    //
     // the previous movement costs are the parents movement costs
     // in this simple case all of the movements are pretty standard, we're on a grid
     // but it's obvious in real life applications where money and time are factored into cost
     // or in a game where there could be a terrain cost (sand vs asphalt) it might
     // have been smarter to go around rather than through something
-    // 
+    //
     // we account for that through re-parenting, every time a new node is explored we're
     // looking to see if other nodes we intend to visit would benefit from having stepped
     // first through this node. If this is the case, we re-parent and re-calculate that node's cost
-    // 
+    //
 
     // LETS DO IT
 
@@ -142,7 +144,7 @@ function Graph() {
 
     // we have to keep track of what we've visited, and are considering visiting
     // we store the visited state on the node itself, so we can just ask the object
-    // 
+    //
     // we start, of course, with the startNode
     var visiting = [this.startNode];
     var currentNode, relevantEdges, indexOfNode, totalCost;
@@ -292,4 +294,3 @@ var solutionParent;
 while (solutionParent = (solutionParent ? solutionParent.parent : graph.goalNode)) {
   console.log("coordinates are: (" + solutionParent.x + ", " + solutionParent.y + ")")
 }
-
