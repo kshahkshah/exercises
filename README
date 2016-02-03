@@ -1,15 +1,3 @@
-One constraint / goal is to not use anything but standard libraries, no external dependencies. It doesn't matter if things are redundant. You can use any language you want as well.  Everything is just an executable
-
-Things to implement:
-
-* sorts - run time characteristics and when to use
-  * quick sort
-  * heap sort
-  * radix sort
-
-* traveling salesman
-
-* trees
-
-* linked lists
-
+* various sorts
+* tsp
+* sudoku, but my version, uses strategies, doesn't mindlessly exhaustively search
