@@ -12,6 +12,9 @@ processing_time_factor = 1.0
 # two, by changing the speed at which jobs enter the queue
 production_speed_factor = 1.0
 
+# when we change, how much we decrease the speed factory
+PRODUCTION_STEP = 0.02
+
 # three, by changing the number of workers
 workers = 10
 
@@ -58,8 +61,9 @@ end
 supervisor = Thread.new do
   logger = Logger.new('supervisor.log')
   iteration = 0
+  utilization_stats = []
 
-  while sleep(0.5) do
+  while sleep(1) do
     begin
       workers_waiting = request_queue.num_waiting()
       workers_available = workers.to_f - workers_waiting
@@ -68,12 +72,17 @@ supervisor = Thread.new do
       last_ten_waits = job_stats[-10..-1] || []
       trailing_wait_time = last_ten_waits.inject(0.0) { |sum, el| sum + el } / last_ten_waits.size
 
-      logger.info("workers waiting: #{workers_waiting}, utilization: #{utilization}, wait time (last 10): #{trailing_wait_time}")
+      utilization_stats << utilization
+
+      last_ten_utilizations = utilization_stats[-10..-1] || []
+      trailing_utilizations = last_ten_utilizations.inject(0.0) { |sum, el| sum + el } / last_ten_utilizations.size
+
+      logger.info("workers waiting: #{workers_waiting}, queue length: #{request_queue.length}, utilization (avg last 10): #{trailing_utilizations}, wait time (avg last 10): #{trailing_wait_time}")
 
       iteration += 1
 
-      if iteration % 10 == 0
-        production_speed_factor -= 0.01
+      if iteration % 5 == 0
+        production_speed_factor -= PRODUCTION_STEP
         logger.info("increasing jobs, production_speed_factor at #{production_speed_factor}")
       end
 
